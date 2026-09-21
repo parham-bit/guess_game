@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>حدس عدد - Lucius's Guess Game</title>
+<style>
+  :root {
+    --bg: #0b0b18;
+    --card: #14142a;
+    --accent: #00e0c6;
+    --accent-dark: #009e8c;
+    --text: #f2f2f5;
+    --muted: #9a9ab0;
+    --danger: #ff5c5c;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--card);
+    border-radius: 16px;
+    padding: 32px 28px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 6px;
+    color: var(--accent);
+    text-align: center;
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0 0 28px;
+  }
+  .range-label {
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+  input[type="number"] {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 18px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: #0e0e1e;
+    color: var(--text);
+    text-align: center;
+    outline: none;
+  }
+  input[type="number"]:focus {
+    border-color: var(--accent);
+  }
+  button {
+    width: 100%;
+    margin-top: 14px;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: #052824;
+    cursor: pointer;
+  }
+  button:active { background: var(--accent-dark); }
+  button.secondary {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text);
+  }
+  #message {
+    margin-top: 20px;
+    min-height: 26px;
+    text-align: center;
+    font-size: 16px;
+  }
+  #message.hint-low { color: #ffcf5c; }
+  #message.hint-high { color: #5cb8ff; }
+  #message.win { color: var(--accent); font-weight: bold; }
+  #attempts {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 10px;
+  }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Lucius's Guess Game</h1>
+  <p class="subtitle">بازی حدس عدد</p>
+  <p class="range-label" id="rangeLabel">یه عدد بین ۱ تا ۱۰ حدس بزن</p>
+
+  <div id="playArea">
+    <input type="number" id="guessInput" placeholder="عدد رو اینجا وارد کن" autofocus />
+    <button id="guessBtn">حدس بزن</button>
+    <div id="message"></div>
+    <div id="attempts"></div>
+  </div>
+
+  <div id="endArea" class="hidden">
+    <div id="message2" class="win"></div>
+    <button id="againBtn" style="margin-top:20px;">دوباره بازی کن</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  const LOWER = 1, UPPER = 100;
+  let secret, attempts;
+
+  const guessInput = document.getElementById('guessInput');
+  const guessBtn = document.getElementById('guessBtn');
+  const message = document.getElementById('message');
+  const attemptsEl = document.getElementById('attempts');
+  const playArea = document.getElementById('playArea');
+  const endArea = document.getElementById('endArea');
+  const message2 = document.getElementById('message2');
+  const againBtn = document.getElementById('againBtn');
+  const rangeLabel = document.getElementById('rangeLabel');
+
+  function startGame() {
+    secret = Math.floor(Math.random() * (UPPER - LOWER + 1)) + LOWER;
+    attempts = 0;
+    message.textContent = '';
+    message.className = '';
+    attemptsEl.textContent = '';
+    guessInput.value = '';
+    rangeLabel.textContent = `یه عدد بین ${LOWER} تا ${UPPER} حدس بزن`;
+    playArea.classList.remove('hidden');
+    endArea.classList.add('hidden');
+    guessInput.focus();
+  }
+
+  function submitGuess() {
+    const val = guessInput.value;
+    if (val === '' || isNaN(val)) {
+      message.textContent = 'لطفاً یه عدد معتبر وارد کن';
+      message.className = 'hint-low';
+      return;
+    }
+    const guess = parseInt(val, 10);
+    attempts++;
+
+    if (guess === secret) {
+      message2.textContent = `آفرین! عدد رو تو ${attempts} تلاش پیدا کردی 🎉`;
+      playArea.classList.add('hidden');
+      endArea.classList.remove('hidden');
+      return;
+    }
+    if (guess > secret) {
+      message.textContent = 'عدد راز کوچیک‌تره!';
+      message.className = 'hint-high';
+    } else {
+      message.textContent = 'عدد راز بزرگ‌تره!';
+      message.className = 'hint-low';
+    }
+    attemptsEl.textContent = `تعداد تلاش: ${attempts}`;
+    guessInput.value = '';
+    guessInput.focus();
+  }
+
+  guessBtn.addEventListener('click', submitGuess);
+  guessInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitGuess();
+  });
+  againBtn.addEventListener('click', startGame);
+
+  startGame();
+})();
+</script>
+</body>
+</html>
